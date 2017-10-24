@@ -6,13 +6,13 @@ import scipy
 import numpy as np
 
 if len(sys.argv) < 2:
-    print "usage: input_matrix output_matrix"
+    print("usage: input_matrix output_matrix")
     sys.exit()
 
 input_matrix = sys.argv[1]
 output_matrix_name = sys.argv[2]
 
-infile = file(input_matrix)
+infile = open(input_matrix)
 num_docs = int(infile.readline())
 num_words = int(infile.readline())
 nnz = int(infile.readline())
