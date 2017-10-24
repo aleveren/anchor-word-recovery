@@ -1,1 +1,13 @@
 *.pyc
+
+# Results
+*.mat
+*.A
+*.topic_likelihoods
+*.topwords
+docword.*.txt
+docword.*.txt.gz
+log.*
+vocab.*.txt
+vocab.*.txt.trunc
+
