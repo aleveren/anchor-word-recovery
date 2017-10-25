@@ -86,11 +86,10 @@ print('New number of words is ', M.shape[0])
 print('New number of documents is ', M.shape[1])
 
 # Output the new vocabulary
-output = open(output_vocab, 'w')
-row = 0
-with open(full_vocab, 'r') as file:
-    for line in file:
-        if not remove_word[row]:
-            output.write(line)
-        row += 1
-output.close()
+with open(output_vocab, 'w') as output:
+    row = 0
+    with open(full_vocab, 'r') as file:
+        for line in file:
+            if not remove_word[row]:
+                output.write(line)
+            row += 1

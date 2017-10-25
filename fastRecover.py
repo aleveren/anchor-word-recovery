@@ -529,6 +529,7 @@ def nonNegativeRecover(Q, anchors, outfile_name, divergence, max_threads, initia
     #recoveryLog.close()
     topic_likelihoodLog.close()
     word_likelihoodLog.close()
+    alphaLog.close()
     return A, colsums
 
 
