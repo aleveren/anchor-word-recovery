@@ -3,7 +3,6 @@ import numpy as np
 import time
 import scipy.sparse
 import math
-from  helper_functions import *
 
 # Given a sparse CSC document matrix M (with floating point entries),
 # comptues the word-word correlation matrix Q
