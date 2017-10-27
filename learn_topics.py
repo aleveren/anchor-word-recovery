@@ -1,5 +1,4 @@
 import sys
-import random_projection as rp
 from numpy.random import RandomState
 import numpy as np
 from fastRecover import do_recovery
