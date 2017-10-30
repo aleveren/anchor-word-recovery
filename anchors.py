@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 from numpy.random import RandomState
 
-def findAnchors(Q, K, params, candidates):
+def findAnchors(Q, params, candidates):
     # Random number generator for generating dimension reduction
     prng_W = RandomState(params.seed)
     checkpoint_prefix = params.checkpoint_prefix
@@ -17,7 +17,7 @@ def findAnchors(Q, K, params, candidates):
     # Reduced dimension random projection method for recovering anchor words
     Q_red = Random_Projection(Q.T, new_dim, prng_W)
     Q_red = Q_red.T
-    anchor_indices = Projection_Find(Q_red, K, candidates)
+    anchor_indices = Projection_Find(Q_red, params.K, candidates)
 
     # restore the original Q
     for i in range(Q.shape[0]):

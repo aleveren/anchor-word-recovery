@@ -100,13 +100,13 @@ class Analysis(object):
 
         #find anchors- this step uses a random projection
         #into low dimensional space
-        anchors = findAnchors(Q, params.K, params, candidate_anchors)
+        anchors = findAnchors(Q, params, candidate_anchors)
         print("anchors are:")
         for i, a in enumerate(anchors):
             print(i, vocab[a])
 
         #recover topics
-        A, topic_likelihoods = do_recovery(Q, anchors, params.loss, params) 
+        A, topic_likelihoods = do_recovery(Q, anchors, params)
         print("done recovering")
 
         np.savetxt(params.outfile+".A", A)
