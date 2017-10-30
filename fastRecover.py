@@ -55,7 +55,7 @@ def KL(p,log_p,q):
 
 #this method does not use a line search and as such may be faster
 #but it needs an initialization of the stepsize
-def fastQuadSolveExpGrad(y, x, eps, initialStepsize, recoveryLog, anchorsTimesAnchors=None):
+def fastQuadSolveExpGrad(y, x, eps, initialStepsize, anchorsTimesAnchors=None):
     (K,n) = x.shape
 
     # Multiply the target vector y and the anchors matrix X by X'
@@ -331,7 +331,7 @@ def Recover(Q, anchors):
     return A
 
 def fastRecover(args):
-    y, x, v, logfilename, anchors, divergence, XXT, initial_stepsize, epsilon = args
+    y, x, v, anchors, divergence, XXT, initial_stepsize, epsilon = args
     start_time = time.time() 
 
     K = len(anchors)
@@ -346,11 +346,11 @@ def fastRecover(args):
 
     else:
         if divergence == "KL":
-            alpha, it, dist, stepsize, t, gap = KLSolveExpGrad(y, x, epsilon)
+            alpha, it, dist, stepsize, t, gap = KLSolveExpGrad(y=y, x=x, eps=epsilon)
         elif divergence == "L2":
-            alpha, it, dist, stepsize, gap = quadSolveExpGrad(y, x, epsilon, None, XXT)
+            alpha, it, dist, stepsize, gap = quadSolveExpGrad(y=y, x=x, eps=epsilon, alpha=None, XX=XXT)
         elif divergence == "fastL2":
-            alpha, it, dist, stepsize, gap = fastQuadSolveExpGrad(y, x, epsilon, 100, None, XXT)
+            alpha, it, dist, stepsize, gap = fastQuadSolveExpGrad(y=y, x=x, eps=epsilon, initialStepsize=100, anchorsTimesAnchors=XXT)
         else:
             raise ValueError("Invalid divergence!")
 
@@ -361,12 +361,11 @@ def fastRecover(args):
     return (v, it, dist, alpha, stepsize, end_time - start_time, gap)
 
 class myIterator:
-    def __init__(self, Q, anchors, recoveryLog, divergence, v_max, initial_stepsize, epsilon=10**(-7)):
+    def __init__(self, Q, anchors, divergence, v_max, initial_stepsize, epsilon=10**(-7)):
         self.Q = Q
         self.anchors = anchors
         self.v = -1
         self.V_max = v_max
-        self.recoveryLog = recoveryLog
         self.divergence = divergence
         self.X = self.Q[anchors, :]
         if "L2" in divergence:
@@ -390,14 +389,12 @@ class myIterator:
         Q = self.Q
         anchors = self.anchors
         divergence = self.divergence
-        recoveryLog = self.recoveryLog
-        return (np.copy(Q[v, :]), np.copy(self.X), v, recoveryLog, anchors, divergence, self.anchorsTimesAnchors, self.initial_stepsize, self.epsilon)
+        return (np.copy(Q[v, :]), np.copy(self.X), v, anchors, divergence, self.anchorsTimesAnchors, self.initial_stepsize, self.epsilon)
 
-#takes a writeable file recoveryLog to log performance
 def nonNegativeRecover(Q, anchors, params, initial_stepsize=1):
-    topic_likelihoodLog = open(params.log_prefix+".topic_likelihoods", 'w')
-    word_likelihoodLog = open(params.log_prefix+".word_likelihoods", 'w')
-    alphaLog = open(params.log_prefix+".alpha", 'w')
+    topic_likelihoodLog = open(params.outfile+".topic_likelihoods", 'w')
+    word_likelihoodLog = open(params.outfile+".word_likelihoods", 'w')
+    alphaLog = open(params.outfile+".alpha", 'w')
 
     V = Q.shape[0]
     K = len(anchors)
@@ -415,7 +412,7 @@ def nonNegativeRecover(Q, anchors, params, initial_stepsize=1):
     if params.max_threads > 0:
         pool = multiprocessing.Pool(params.max_threads)
         print("begin threaded recovery with", params.max_threads, "processors")
-        args = myIterator(Q, anchors, params.outfile+".recoveryLog", params.loss, V, initial_stepsize, params.eps)
+        args = myIterator(Q, anchors, params.loss, V, initial_stepsize, params.eps)
         rows = pool.imap_unordered(fastRecover, args, chunksize = 10)
         for r in rows:
             v, it, obj, alpha, stepsize, t, gap = r
@@ -431,7 +428,7 @@ def nonNegativeRecover(Q, anchors, params, initial_stepsize=1):
         XXT = np.dot(X, X.transpose())
         for w in range(V):
             y = Q[w, :]
-            v, it, obj, alpha, stepsize, t, gap = fastRecover((y, X, w, params.outfile+".recoveryLog", anchors, params.loss, XXT, initial_stepsize, params.eps))
+            v, it, obj, alpha, stepsize, t, gap = fastRecover((y, X, w, anchors, params.loss, XXT, initial_stepsize, params.eps))
             A[w, :] = alpha
             if v % 1 == 0:
                 print("word", v, it, "iterations. Gap", gap, "obj", obj, "final stepsize was", stepsize, "took", t, "seconds")

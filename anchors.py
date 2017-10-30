@@ -6,7 +6,6 @@ from numpy.random import RandomState
 def findAnchors(Q, params, candidates):
     # Random number generator for generating dimension reduction
     prng_W = RandomState(params.seed)
-    checkpoint_prefix = params.checkpoint_prefix
     new_dim = params.new_dim
 
     # row normalize Q

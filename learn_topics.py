@@ -10,16 +10,13 @@ import scipy.io
 from collections import namedtuple
 import argparse
 
-_Params_fields = ["log_prefix", "checkpoint_prefix", "seed", "eps",
-    "max_threads", "new_dim", "anchor_thresh", "top_words",
-    "infile", "vocab_file", "K", "loss", "outfile"]
+_Params_fields = ["seed", "eps", "max_threads", "new_dim", "anchor_thresh",
+    "top_words", "infile", "vocab_file", "K", "loss", "outfile"]
 
 class Params(namedtuple("Params", _Params_fields)):
     @classmethod
     def from_file_and_cmd_args(cls, filename, extra_args):
         kwargs = dict(
-            log_prefix = None,
-            checkpoint_prefix = None,
             seed = int(time.time()))
 
         with open(filename) as f:
@@ -28,14 +25,10 @@ class Params(namedtuple("Params", _Params_fields)):
                     continue
                 l = l.strip()
                 l = l.split('=')
-                if l[0] == "log_prefix":
-                    kwargs["log_prefix"] = l[1]
-                elif l[0] == "max_threads":
+                if l[0] == "max_threads":
                     kwargs["max_threads"] = int(l[1])
                 elif l[0] == "eps":
                     kwargs["eps"] = float(l[1])
-                elif l[0] == "checkpoint_prefix":
-                    kwargs["checkpoint_prefix"] = l[1]
                 elif l[0] == "new_dim":
                     kwargs["new_dim"] = int(l[1])
                 elif l[0] == "seed":
@@ -44,6 +37,8 @@ class Params(namedtuple("Params", _Params_fields)):
                     kwargs["anchor_thresh"] = int(l[1])
                 elif l[0] == "top_words":
                     kwargs["top_words"] = int(l[1])
+                else:
+                    raise ValueError("Unrecognized param: '{}'".format(l[0]))
 
         kwargs.update(extra_args)
 

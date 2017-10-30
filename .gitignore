@@ -5,10 +5,11 @@
 *.mat
 *.A
 *.topic_likelihoods
+*.word_likelihoods
+*.alpha
 *.topwords
 docword.*.txt
 docword.*.txt.gz
-log.*
 vocab.*.txt
 vocab.*.txt.trunc
 
