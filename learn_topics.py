@@ -66,17 +66,28 @@ TopWordsSummary = namedtuple("TopWordsSummary",
     ["topic_index", "anchor_word_index", "anchor_word",
     "top_word_indices", "top_words"])
 
+# Define basestr for python 2 vs 3 compatibility
+try:
+    basestr
+except NameError as e:
+    basestr = str
+
 class Analysis(object):
     def __init__(self, params):
         self.params = params
 
     def run(self):
         params = self.params
-        M = scipy.io.loadmat(params.infile)['M']
-        print("identifying candidate anchors")
-        candidate_anchors = []
+
+        if isinstance(params.infile, basestr):
+            M = scipy.io.loadmat(params.infile)['M']
+        else:
+            M = params.infile
+        assert sparse.isspmatrix_csc(M), "Must provide a sparse CSC matrix"
 
         #only accept anchors that appear in a significant number of docs
+        print("identifying candidate anchors")
+        candidate_anchors = []
         for i in range(M.shape[0]):
             if len(np.nonzero(M[i, :])[1]) > params.anchor_thresh:
                 candidate_anchors.append(i)
@@ -86,8 +97,12 @@ class Analysis(object):
         #forms Q matrix from document-word matrix
         Q = generate_Q_matrix(M)
 
-        with open(params.vocab_file) as f:
-            vocab = f.read().strip().split()
+        if isinstance(params.infile, basestr):
+            with open(params.vocab_file) as f:
+                vocab = f.read().strip().split()
+        else:
+            vocab = params.vocab_file
+        assert np.iterable(vocab), "Must provide an iterable vocab"
 
         #check that Q sum is 1 or close to it
         print("Q sum is", Q.sum())
