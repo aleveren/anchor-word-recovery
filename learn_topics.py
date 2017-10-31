@@ -17,6 +17,7 @@ class Params(namedtuple("Params", _Params_fields)):
     @classmethod
     def from_file_and_cmd_args(cls, filename, extra_args):
         kwargs = dict(
+            outfile = None,
             seed = int(time.time()))
 
         with open(filename) as f:
@@ -104,27 +105,36 @@ class Analysis(object):
         A, topic_likelihoods = do_recovery(Q, anchors, params)
         print("done recovering")
 
-        np.savetxt(params.outfile+".A", A)
-        np.savetxt(params.outfile+".topic_likelihoods", topic_likelihoods)
+        output_streams = [sys.stdout]
+        output_file_handle = None
+        if params.outfile is not None:
+            np.savetxt(params.outfile+".A", A)
+            np.savetxt(params.outfile+".topic_likelihoods", topic_likelihoods)
+            output_file_handle = open(params.outfile+".topwords", 'w')
+            output_streams.append()
 
-        #display
+        def print_multiple(*args, **kwargs):
+            # Print the same info to multiple output streams
+            for f in output_streams:
+                print(*args, file=f, **kwargs)
+
+        # Display top words per topic
         all_topwords = []
-        with open(params.outfile+".topwords", 'w') as f:
-            for k in range(params.K):
-                topwords = np.argsort(A[:, k])[-params.top_words:][::-1]
-                print(vocab[anchors[k]], ':', end=' ')
-                print(vocab[anchors[k]], ':', end=' ', file=f)
-                for w in topwords:
-                    print(vocab[w], end=' ')
-                    print(vocab[w], end=' ', file=f)
-                print("")
-                print("", file=f)
-                all_topwords.append(TopWordsSummary(
-                    topic_index = k,
-                    anchor_word_index = anchors[k],
-                    anchor_word = vocab[anchors[k]],
-                    top_word_indices = topwords,
-                    top_words = [vocab[w] for w in topwords]))
+        for k in range(params.K):
+            topwords = np.argsort(A[:, k])[-params.top_words:][::-1]
+            print_multiple(vocab[anchors[k]], ':', end=' ')
+            for w in topwords:
+                print_multiple(vocab[w], end=' ')
+            print_multiple("")
+            all_topwords.append(TopWordsSummary(
+                topic_index = k,
+                anchor_word_index = anchors[k],
+                anchor_word = vocab[anchors[k]],
+                top_word_indices = topwords,
+                top_words = [vocab[w] for w in topwords]))
+
+        if params.outfile is not None:
+            output_file_handle.close()
 
         # make some results available as attributes of "self"
         self.Q = Q

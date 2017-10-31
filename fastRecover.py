@@ -392,9 +392,10 @@ class myIterator:
         return (np.copy(Q[v, :]), np.copy(self.X), v, anchors, divergence, self.anchorsTimesAnchors, self.initial_stepsize, self.epsilon)
 
 def nonNegativeRecover(Q, anchors, params, initial_stepsize=1):
-    topic_likelihoodLog = open(params.outfile+".topic_likelihoods", 'w')
-    word_likelihoodLog = open(params.outfile+".word_likelihoods", 'w')
-    alphaLog = open(params.outfile+".alpha", 'w')
+    if params.outfile is not None:
+        topic_likelihoodLog = open(params.outfile+".topic_likelihoods", 'w')
+        word_likelihoodLog = open(params.outfile+".word_likelihoods", 'w')
+        alphaLog = open(params.outfile+".alpha", 'w')
 
     V = Q.shape[0]
     K = len(anchors)
@@ -419,8 +420,9 @@ def nonNegativeRecover(Q, anchors, params, initial_stepsize=1):
             A[v, :] = alpha
             if v % 1000 == 0:
                 print("\t".join([str(x) for x in [v, it, max(alpha)]]))
-                print(v, alpha, file=alphaLog)
-                alphaLog.flush()
+                if params.outfile is not None:
+                    print(v, alpha, file=alphaLog)
+                    alphaLog.flush()
                 sys.stdout.flush()
 
     else:
@@ -432,8 +434,9 @@ def nonNegativeRecover(Q, anchors, params, initial_stepsize=1):
             A[w, :] = alpha
             if v % 1 == 0:
                 print("word", v, it, "iterations. Gap", gap, "obj", obj, "final stepsize was", stepsize, "took", t, "seconds")
-                print(v, alpha, file=alphaLog)
-                alphaLog.flush()
+                if params.outfile is not None:
+                    print(v, alpha, file=alphaLog)
+                    alphaLog.flush()
                 sys.stdout.flush()
 
     #rescale A matrix
@@ -446,14 +449,15 @@ def nonNegativeRecover(Q, anchors, params, initial_stepsize=1):
     for k in range(K):
         A[:, k] = A[:, k] / A[:,k].sum()
 
-    for k in range(K):
-        print(colsums[k], file=topic_likelihoodLog)
+    if params.outfile is not None:
+        for k in range(K):
+            print(colsums[k], file=topic_likelihoodLog)
 
-    for v in range(V):
-        print(P_w[v,v], file=word_likelihoodLog)
+        for v in range(V):
+            print(P_w[v,v], file=word_likelihoodLog)
 
-    topic_likelihoodLog.close()
-    word_likelihoodLog.close()
-    alphaLog.close()
+        topic_likelihoodLog.close()
+        word_likelihoodLog.close()
+        alphaLog.close()
 
     return A, colsums
