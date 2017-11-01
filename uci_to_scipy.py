@@ -1,5 +1,7 @@
 #takes in matrix in UCI repository format and outputs a scipy sparse matrix file
 
+from __future__ import division, print_function
+
 import sys
 import scipy.io
 import scipy

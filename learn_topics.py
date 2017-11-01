@@ -1,3 +1,5 @@
+from __future__ import division, print_function
+
 import sys
 from numpy.random import RandomState
 import numpy as np
