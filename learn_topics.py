@@ -87,6 +87,8 @@ class Analysis(object):
             M = params.infile
         assert sparse.isspmatrix_csc(M), "Must provide a sparse CSC matrix"
 
+        print("Input matrix shape: {}".format(M.shape))
+
         #only accept anchors that appear in a significant number of docs
         print("identifying candidate anchors")
         candidate_anchors = []
