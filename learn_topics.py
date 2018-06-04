@@ -130,7 +130,7 @@ class Analysis(object):
             np.savetxt(params.outfile+".A", A)
             np.savetxt(params.outfile+".topic_likelihoods", topic_likelihoods)
             output_file_handle = open(params.outfile+".topwords", 'w')
-            output_streams.append()
+            output_streams.append(output_file_handle)
 
         def print_multiple(*args, **kwargs):
             # Print the same info to multiple output streams
