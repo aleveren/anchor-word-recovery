@@ -159,11 +159,21 @@ class Analysis(object):
         self.Q = Q
         self.M = M
         self.A = A
+        self._R = None
         self.topic_likelihoods = topic_likelihoods
         self.candidate_anchors = candidate_anchors
         self.anchors = anchors
         self.vocab = vocab
         self.all_topwords = all_topwords
+
+    @property
+    def R(self):
+        if self._R is not None:
+            return self._R
+
+        Ap = np.linalg.pinv(self.A)
+        self._R = Ap.dot(self.Q).dot(Ap.T)
+        return self._R
 
 if __name__ == "__main__":
     main()
