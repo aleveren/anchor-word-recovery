@@ -17,6 +17,14 @@ _Params_fields = ["seed", "eps", "max_threads", "new_dim", "anchor_thresh",
 
 class Params(namedtuple("Params", _Params_fields)):
     @classmethod
+    def from_dict(cls, d):
+        kwargs = dict(
+            outfile = None,
+            seed = int(time.time()))
+        kwargs.update(d)
+        return cls(**kwargs)
+
+    @classmethod
     def from_file_and_cmd_args(cls, filename, extra_args):
         kwargs = dict(
             outfile = None,
@@ -75,8 +83,17 @@ except NameError as e:
     basestr = str
 
 class Analysis(object):
-    def __init__(self, params):
-        self.params = params
+    def __init__(self, *args, **kwargs):
+        # TODO: clean up how params are set (should just use named args?)
+        if len(args) == 1:
+            self.params = args[0]
+        elif len(args) == 0:
+            if "params" in kwargs:
+                self.params = kwargs["params"]
+            else:
+                self.params = Params.from_dict(kwargs)
+        else:
+            raise ValueError("Unexpected number of positional args")
 
     def run(self):
         params = self.params
@@ -89,6 +106,17 @@ class Analysis(object):
 
         print("Input matrix shape: {}".format(M.shape))
 
+        if isinstance(params.vocab_file, basestr):
+            with open(params.vocab_file) as f:
+                vocab = f.read().strip().split()
+        else:
+            vocab = params.vocab_file
+        assert np.iterable(vocab), "Must provide an iterable vocab"
+
+        assert M.shape[0] == len(vocab), \
+            "Number of rows must correspond to vocab size: {} rows vs {} vocab words" \
+            .format(M.shape[0], len(vocab))
+
         #only accept anchors that appear in a significant number of docs
         print("identifying candidate anchors")
         candidate_anchors = []
@@ -100,13 +128,6 @@ class Analysis(object):
 
         #forms Q matrix from document-word matrix
         Q = generate_Q_matrix(M)
-
-        if isinstance(params.infile, basestr):
-            with open(params.vocab_file) as f:
-                vocab = f.read().strip().split()
-        else:
-            vocab = params.vocab_file
-        assert np.iterable(vocab), "Must provide an iterable vocab"
 
         #check that Q sum is 1 or close to it
         print("Q sum is", Q.sum())
