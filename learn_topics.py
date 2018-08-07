@@ -129,6 +129,9 @@ class Analysis(object):
         #forms Q matrix from document-word matrix
         Q = generate_Q_matrix(M)
 
+        # Save copy of unnormalized Q, before any normalizations happen
+        self.Q_unnormalized = Q.copy()
+
         #check that Q sum is 1 or close to it
         print("Q sum is", Q.sum())
         V = Q.shape[0]
@@ -193,7 +196,7 @@ class Analysis(object):
             return self._R
 
         Ap = np.linalg.pinv(self.A)
-        self._R = Ap.dot(self.Q).dot(Ap.T)
+        self._R = Ap.dot(self.Q_unnormalized).dot(Ap.T)
         return self._R
 
 if __name__ == "__main__":
